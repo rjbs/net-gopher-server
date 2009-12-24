@@ -1,4 +1,4 @@
-package Net::Gopher::Listing;
+package Net::Gopher::Entity::Directory;
 use Moose;
 
 has entities => (
@@ -7,10 +7,12 @@ has entities => (
   required => 1,
 );
 
-sub as_string {
+sub type_code { '0' }
+
+sub as_response {
   my ($self) = @_;
   my $str = '';
-  $str .= $_->as_listing_line for @{ $self->entities };
+  $str .= $_->as_directory_line for @{ $self->entities };
 
   return $str;
 }

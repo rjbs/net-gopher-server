@@ -3,8 +3,7 @@ use warnings;
 package Net::Gopher::Server;
 # ABSTRACT: a simple gopher server
 
-use Net::Gopher::Entity;
-use Net::Gopher::Listing;
+use Net::Gopher::Entity::Generic;
 
 use Package::Generator;
 use Sub::Exporter -setup => {
@@ -75,9 +74,10 @@ sub entity_for {
 sub unknown_reply {
   my ($self) = @_;
 
-  return Net::Gopher::Entity->new({
+  return Net::Gopher::Entity::Generic->new({
     type_code   => 3,
     description => 'no such resource',
+    content     => 'no such resource',
     path        => '',
     host        => '',
     port        => 70,
@@ -95,7 +95,7 @@ sub process_request {
   $path =~ s/\x0d\x0a\z//;
   my $entity = $self->entity_for($path);
 
-  $self->_reply( $entity->as_string . ".\x0d\x0a" );
+  $self->_reply( $entity->as_response . ".\x0d\x0a" );
 
   return;
 }

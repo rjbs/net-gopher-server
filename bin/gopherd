@@ -3,6 +3,10 @@
 use strict;
 use warnings;
 
+use Net::Gopher::Entity;
+use Net::Gopher::Entity::Generic;
+use Net::Gopher::Entity::Directory;
+
 {
   package MyGopherd;
   use base 'Net::Gopher::Server';
@@ -61,19 +65,21 @@ use warnings;
   sub entity_for {
     my ($self, $request) = @_;
     return $self->SUPER::entity_for($request) if length $request;
-    return Net::Gopher::Listing->new({
+    return Net::Gopher::Entity::Directory->new({
       entities => [
-        Net::Gopher::Entity->new({
+        Net::Gopher::Entity::Generic->new({
           type_code   => 1,
           description => 'Totally Important Stuff',
           path        => 'README.1ST',
+          content     => "CONTENT!!! CONTENT!!!\n",
           host        => 'localhost',
           port        => 70,
         }),
-        Net::Gopher::Entity->new({
+        Net::Gopher::Entity::Generic->new({
           type_code   => 1,
           description => 'not really important whatevers',
           path        => 'README.LST',
+          content     => sub { "this space intentionally left at home\n" },
           host        => 'localhost',
           port        => 70,
         }),

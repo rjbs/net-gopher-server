@@ -1,13 +1,11 @@
 package Net::Gopher::Entity;
-use Moose;
+use Moose::Role;
 
 use namespace::autoclean;
 
-has type_code => (
-  is  => 'ro',
-  isa => 'Str', # 1 char
-  required => 1,
-);
+requires 'as_response';
+
+requires 'type_code';
 
 has [ qw(description path host) ] => (
   is  => 'ro',
@@ -21,12 +19,17 @@ has port => (
   required => 1,
 );
 
-sub as_listing_line {
+sub as_directory_line {
   my ($self) = @_;
-  return sprintf "%s%s\t%s\t%s\t%s\x0d\x0a",
-    map {; $self->$_ } qw(type_code description path host port);
-}
 
-sub as_string { shift->as_listing_line }
+  my $type_code = $self->type_code;
+
+  Carp::cluck "illegal type code: '$type_code'"
+    unless defined $type_code and length $type_code == 1;
+
+  return sprintf "%s%s\t%s\t%s\t%s\x0d\x0a",
+    $type_code,
+    map {; $self->$_ } qw(description path host port);
+}
 
 1;
