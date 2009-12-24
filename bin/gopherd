@@ -1,0 +1,85 @@
+#!/usr/bin/perl
+# gopher - a gopher server (I'm sorry!)
+use strict;
+use warnings;
+
+{
+  package MyGopherd;
+  use base 'Net::Gopher::Server';
+
+  use IO::Socket;
+
+  my $crlf = "\015\012";
+
+  sub new {
+    my ($self, %config) = @_;
+    
+    warn "setting up socket on $config{port}\n";
+
+    my $guts = {
+      socket => IO::Socket::INET->new(
+        Proto     => 'tcp',
+        LocalPort => $config{port},
+        Listen    => 128,
+        Reuse     => 1
+      ),
+    };
+
+    bless $guts => $self;
+  }
+
+  sub run {
+    my ($self) = @_;
+    my $socket = $self->{socket};
+
+    while (1) {
+      next unless my $connection = $socket->accept;
+      if (fork) {
+        $connection->close;
+        next;
+      } else {
+        $connection->autoflush(1);
+        $self->{connection} = $connection;
+        $self->process_request;
+        $connection->close;
+      }
+    }
+
+    $socket->close;
+  }
+
+  sub _read_input_line {
+    my ($self) = @_;
+    return $self->{connection}->getline;
+  }
+
+  sub _reply {
+    my ($self, $reply) = @_;
+    $self->{connection}->print($reply);
+  }
+
+  sub entity_for {
+    my ($self, $request) = @_;
+    return $self->SUPER::entity_for($request) if length $request;
+    return Net::Gopher::Listing->new({
+      entities => [
+        Net::Gopher::Entity->new({
+          type_code   => 1,
+          description => 'Totally Important Stuff',
+          path        => 'README.1ST',
+          host        => 'localhost',
+          port        => 70,
+        }),
+        Net::Gopher::Entity->new({
+          type_code   => 1,
+          description => 'not really important whatevers',
+          path        => 'README.LST',
+          host        => 'localhost',
+          port        => 70,
+        }),
+      ],
+    });
+  }
+}
+
+MyGopherd->new(port => 1170)->run;
