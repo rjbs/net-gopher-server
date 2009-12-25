@@ -1,4 +1,4 @@
-package Net::Gopher::Entity::Directory;
+package Net::Gopher::Entity::Menu;
 use Moose;
 
 has entities => (
@@ -12,7 +12,9 @@ sub type_code { '0' }
 sub as_response {
   my ($self) = @_;
   my $str = '';
-  $str .= $_->as_directory_line for @{ $self->entities };
+
+  $str .= $_->as_menu_line for @{ $self->entities };
+  $str .= ".\x0d\x0a";
 
   return $str;
 }

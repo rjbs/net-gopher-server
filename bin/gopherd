@@ -5,7 +5,8 @@ use warnings;
 
 use Net::Gopher::Entity;
 use Net::Gopher::Entity::Generic;
-use Net::Gopher::Entity::Directory;
+use Net::Gopher::Entity::Menu;
+use Tie::IxHash;
 
 {
   package MyGopherd;
@@ -64,27 +65,32 @@ use Net::Gopher::Entity::Directory;
 
   sub entity_for {
     my ($self, $request) = @_;
-    return $self->SUPER::entity_for($request) if length $request;
-    return Net::Gopher::Entity::Directory->new({
-      entities => [
-        Net::Gopher::Entity::Generic->new({
-          type_code   => 1,
-          description => 'Totally Important Stuff',
-          path        => 'README.1ST',
-          content     => "CONTENT!!! CONTENT!!!\n",
-          host        => 'localhost',
-          port        => 70,
-        }),
-        Net::Gopher::Entity::Generic->new({
-          type_code   => 1,
-          description => 'not really important whatevers',
-          path        => 'README.LST',
-          content     => sub { "this space intentionally left at home\n" },
-          host        => 'localhost',
-          port        => 70,
-        }),
-      ],
+
+    tie my %menu, 'Tie::IxHash';
+    $menu{'README.1ST'} = Net::Gopher::Entity::Generic->new({
+      type_code   => 1,
+      description => 'Totally Important Stuff',
+      path        => 'README.1ST',
+      content     => "CONTENT!!! CONTENT!!!\n",
+      host        => 'localhost',
+      port        => 70,
     });
+
+    $menu{'README.LST'} = Net::Gopher::Entity::Generic->new({
+      type_code   => 1,
+      description => 'not really important whatevers',
+      path        => 'README.LST',
+      content     => sub { "this space intentionally left at home\n" },
+      host        => 'localhost',
+      port        => 70,
+    });
+
+    if (not length $request) {
+      return Net::Gopher::Entity::Menu->new({ entities => [ values %menu ] });
+    }
+
+    return $menu{$request} if exists $menu{$request};
+    return $self->SUPER::entity_for($request);
   }
 }
 

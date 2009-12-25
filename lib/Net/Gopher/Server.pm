@@ -95,7 +95,7 @@ sub process_request {
   $path =~ s/\x0d\x0a\z//;
   my $entity = $self->entity_for($path);
 
-  $self->_reply( $entity->as_response . ".\x0d\x0a" );
+  $self->_reply( $entity->as_response );
 
   return;
 }

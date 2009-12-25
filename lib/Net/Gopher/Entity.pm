@@ -19,7 +19,7 @@ has port => (
   required => 1,
 );
 
-sub as_directory_line {
+sub as_menu_line {
   my ($self) = @_;
 
   my $type_code = $self->type_code;

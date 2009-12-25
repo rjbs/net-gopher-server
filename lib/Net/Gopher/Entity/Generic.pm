@@ -9,6 +9,16 @@ has type_code => (
 
 with 'Net::Gopher::Entity';
 
+has is_dot_terminated => (
+  is   => 'ro',
+  isa  => 'Bool',
+  lazy => 1,
+  default => sub {
+    my ($self) = @_;
+    return not($self->type_code =~ /\A[59]\z/);
+  },
+);
+
 has content => (
   is  => 'ro',
   # isa => 'Str', # str, strref, code
@@ -26,7 +36,9 @@ sub as_response {
 
   my $content = $self->content;
   my $ref = ref $content;
-  return $STUPID_CALLBACK_FOR{ $ref }->( $content );
+  my $str = $STUPID_CALLBACK_FOR{ $ref }->( $content );
+  $str .= "\x0d\x0a" unless $str =~ /\x0d\x0a\z/;
+  return($str . ($self->is_dot_terminated ? ".\x0d\x0a" : ''));
 }
 
 1;
